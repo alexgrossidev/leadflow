@@ -1,0 +1,191 @@
+# Local demo stack: every service plus the infrastructure and stand-ins it needs.
+#
+#   cp .env.example .env && docker compose up --build
+#   npm run demo
+#
+# External systems are replaced by local stand-ins, so no accounts or API keys
+# are needed: Mailpit (SMTP inbox), a fake WhatsApp transport, a mock Meta Graph
+# API, MinIO (S3) and a deterministic fake LLM provider.
+
+x-service: &service
+  restart: unless-stopped
+  depends_on:
+    mysql: { condition: service_healthy }
+    redis: { condition: service_healthy }
+
+x-common-env: &common-env
+  NODE_ENV: production
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  DB_HOST: mysql
+  DB_PORT: "3306"
+  DB_USER: leadflow
+  DB_PASSWORD: ${MYSQL_PASSWORD:-leadflow}
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+
+x-s3-env: &s3-env
+  S3_ENDPOINT: http://minio:9000
+  S3_REGION: us-east-1
+  S3_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-leadflow}
+  S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-leadflow-minio}
+  S3_BUCKET: leadflow-imports
+  S3_FORCE_PATH_STYLE: "true"
+
+services:
+  # ── Infrastructure ────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-leadflow-root}
+      MYSQL_USER: leadflow
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-leadflow}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./deploy/mysql/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+      - ./services:/leadflow/services:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 20
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address :9001
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-leadflow}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-leadflow-minio}
+    ports: ["9001:9001"]
+    volumes: [minio-data:/data]
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on: [minio]
+    entrypoint: >
+      sh -c "until mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD}; do sleep 1; done;
+             mc mb --ignore-existing local/leadflow-imports"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-leadflow}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-leadflow-minio}
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["8025:8025"] # web inbox: http://localhost:8025
+
+  # ── Stand-ins for third parties (dev tools, not production code) ──────────
+  fake-whatsapp:
+    build: { context: ., target: tools, args: { SERVICE: whatsapp } }
+    command: ["npx", "tsx", "services/whatsapp/dev/fake-transport.ts"]
+    environment:
+      SECRET_KEY: ${WA_TRANSPORT_SECRET_KEY:-demo-wa-transport-secret}
+      WEBHOOK_URL: http://whatsapp:3012/sessions/callback/${WA_WEBHOOK_SECRET:-demo-wa-webhook-secret}
+    ports: ["21465:21465"] # GET /__messages lists "delivered" WhatsApp messages
+
+  mock-graph:
+    build: { context: ., target: tools, args: { SERVICE: lead-ingestion } }
+    command: ["npx", "tsx", "services/lead-ingestion/scripts/mock-graph.ts"]
+    environment:
+      MOCK_GRAPH_PORT: "4010"
+
+  # ── Services ──────────────────────────────────────────────────────────────
+  gateway:
+    <<: *service
+    build: { context: ., args: { SERVICE: gateway } }
+    ports: ["3000:3000"]
+    environment:
+      <<: [*common-env, *s3-env]
+      DB_NAME: gateway
+      PORT: "3000"
+      JWT_SECRET: ${JWT_SECRET:-demo-jwt-secret-change-me-0123456789abcdef}
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-demo-service-token-change-me-0123456789}
+      GRPC_LISTEN_ADDR: 0.0.0.0:50051
+      ALLOWED_ORIGINS: http://localhost:5173
+
+  lead-ingestion:
+    <<: *service
+    build: { context: ., args: { SERVICE: lead-ingestion } }
+    ports: ["5097:5097"]
+    environment:
+      <<: *common-env
+      DB_NAME: lead_ingestion
+      PORT: "5097"
+      GATEWAY_URL: http://gateway:3000
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-demo-service-token-change-me-0123456789}
+      FB_APP_ID: "000000000000000"
+      FB_APP_SECRET: ${FB_APP_SECRET:-demo-fb-app-secret}
+      FB_VERIFY_TOKEN: ${FB_VERIFY_TOKEN:-demo-fb-verify-token}
+      FB_API_VERSION: v22.0
+      FB_GRAPH_BASE_URL: http://mock-graph:4010
+      FB_REDIRECT_URI: http://localhost:5097/fb/auth
+      OAUTH_STATE_SECRET: ${OAUTH_STATE_SECRET:-demo-oauth-state-secret-change-me-0123456789}
+      GOOGLE_FORMS_SECRET: ${GOOGLE_FORMS_SECRET:-demo-google-forms-secret}
+      GOOGLE_HONEYPOT_FIELD: website_confirm
+
+  automations:
+    <<: *service
+    build: { context: ., args: { SERVICE: automations } }
+    environment:
+      <<: *common-env
+      DB_NAME: automations
+      GATEWAY_GRPC_ADDR: gateway:50051
+
+  sender:
+    <<: *service
+    build: { context: ., args: { SERVICE: sender } }
+    environment:
+      <<: *common-env
+      DB_NAME: sender
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_SECURE: "false"
+      SMTP_FROM: "LeadFlow Demo <no-reply@leadflow.example>"
+      EMAIL_CHECKS: basic
+
+  whatsapp:
+    <<: *service
+    build: { context: ., args: { SERVICE: whatsapp } }
+    ports: ["3012:3012"]
+    environment:
+      <<: *common-env
+      DB_NAME: whatsapp
+      PORT: "3012"
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-demo-service-token-change-me-0123456789}
+      WHATSAPP_SERVER_URL: http://fake-whatsapp:21465
+      WA_TRANSPORT_SECRET_KEY: ${WA_TRANSPORT_SECRET_KEY:-demo-wa-transport-secret}
+      WA_WEBHOOK_SECRET: ${WA_WEBHOOK_SECRET:-demo-wa-webhook-secret}
+
+  agents:
+    <<: *service
+    build: { context: ., args: { SERVICE: agents } }
+    ports: ["3020:3020"]
+    environment:
+      <<: *common-env
+      DB_NAME: agents
+      PORT: "3020"
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-demo-service-token-change-me-0123456789}
+      GATEWAY_URL: http://gateway:3000
+      # Deterministic stand-in; set LLM_PROVIDER=anthropic and ANTHROPIC_API_KEY to use Claude.
+      LLM_PROVIDER: ${LLM_PROVIDER:-fake}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+
+  fileparser:
+    <<: *service
+    build: { context: ., args: { SERVICE: fileparser } }
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio-init: { condition: service_completed_successfully }
+    environment:
+      <<: [*common-env, *s3-env]
+      DB_NAME: fileparser
+      GATEWAY_GRPC_ADDR: gateway:50051
+
+volumes:
+  mysql-data:
+  minio-data:
