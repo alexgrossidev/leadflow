@@ -1,0 +1,16 @@
+{
+  "extends": "@leadflow/tsconfig/service.json",
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "paths": {
+      "#config/*": ["./src/config/*"],
+      "#core/*": ["./src/core/*"],
+      "#transport/*": ["./src/transport/*"],
+      "#workers/*": ["./src/workers/*"],
+      "#modules/*": ["./src/modules/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "dev/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

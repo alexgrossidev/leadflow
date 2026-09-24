@@ -1,0 +1,30 @@
+-- Outbound message log, deduplicated on the producer's idempotency key;
+-- mirrors src/modules/messageLogs/messageLog.table.ts.
+CREATE TABLE whatsapp_message_logs (
+  id                  INT NOT NULL AUTO_INCREMENT,
+  idempotency_key     VARCHAR(255) NOT NULL,
+  status              ENUM('pending','sent','failed') NOT NULL DEFAULT 'pending',
+  user_id             INT NOT NULL,
+  business_id         INT NOT NULL,
+  automation_id       INT NULL,
+  target_id           INT NULL,
+  recipient_id        INT NULL,
+  recipient_type      VARCHAR(32) NULL,
+  recipient_phone     VARCHAR(64) NOT NULL,
+  payload_ref         VARCHAR(512) NULL,
+  provider_message_id VARCHAR(255) NULL,
+  attempts            INT NOT NULL DEFAULT 0,
+  error_code          VARCHAR(128) NULL,
+  error_message       TEXT NULL,
+  error_payload       JSON NULL,
+  created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  queued_at           TIMESTAMP NULL,
+  sent_at             TIMESTAMP NULL,
+  failed_at           TIMESTAMP NULL,
+  updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY whatsapp_message_logs_idempotency_key_uq (idempotency_key),
+  KEY whatsapp_message_logs_status_idx (status),
+  KEY whatsapp_message_logs_automation_target_idx (automation_id, target_id),
+  KEY whatsapp_message_logs_business_created_idx (business_id, created_at)
+);
