@@ -1,0 +1,34 @@
+{
+  "name": "@leadflow/lead-ingestion",
+  "version": "1.0.0",
+  "description": "Lead capture edge: Meta Lead Ads and Google Forms webhooks, OAuth token lifecycle, resumable BullMQ pipelines",
+  "scripts": {
+    "build": "node ../../scripts/build-service.mjs src/main.ts",
+    "dev": "tsx watch --conditions=development src/main.ts",
+    "start": "node dist/main.js",
+    "test": "vitest run",
+    "check-types": "tsc --noEmit"
+  },
+  "author": "",
+  "license": "ISC",
+  "imports": {
+    "#core/*": "./src/core/*.ts",
+    "#dispatchers/*": "./src/dispatchers/*.ts",
+    "#modules/*": "./src/modules_inbound/*.ts",
+    "#config/*": "./src/config/*.ts",
+    "#workers/*": "./src/workers/*.ts",
+    "#database/*": "./src/database/*.ts"
+  },
+  "dependencies": {
+    "@leadflow/shared": "file:../../packages/shared",
+    "axios": "^1.14.0",
+    "dotenv": "*",
+    "drizzle-orm": "*",
+    "fastify": "^5.8.4",
+    "fastify-raw-body": "^5.0.0",
+    "mysql2": "^3.20.0",
+    "zod": "^3.25.76"
+  },
+  "type": "module",
+  "private": true
+}
