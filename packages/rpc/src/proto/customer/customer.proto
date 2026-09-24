@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package customer;
+
+message BulkInsertCustomersRequest {
+  string import_job_id = 1;
+  int32 business_id = 2;
+  repeated Customer customers = 3;
+}
+
+message Customer {
+  // Guaranteed base fields required for matching identity anchors
+  string name = 1;
+  string email = 2;     // Can be empty if phone is present
+  string phone = 3;     // Can be empty if email is present
+  
+  // e.g. {"budget": "50000", "region": "North-East"}
+  map<string, string> custom_fields = 4;
+  string hash = 5;
+}
+
+message BulkInsertCustomersResponse {
+  bool success = 1;
+  int32 records_processed = 2;
+  string message = 3;
+}
+
+service CustomerService {
+  rpc BulkInsertCustomers(BulkInsertCustomersRequest) returns (BulkInsertCustomersResponse);
+}

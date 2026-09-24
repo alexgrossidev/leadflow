@@ -1,0 +1,16 @@
+version: v2
+plugins:
+  - local: protoc-gen-ts_proto
+    out: src/gen
+    opt:
+      - outputServices=grpc-js
+      - esModuleInterop=true
+      - useExactTypes=true
+      - forceLong=string
+      - outputJsonMethods=false
+      - env=node
+      - useOptionals=all
+      - fileSuffix=.ts_proto
+      - exportCommonSymbols=false
+inputs:
+  - directory: src/proto

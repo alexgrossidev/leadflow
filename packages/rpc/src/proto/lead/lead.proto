@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package lead;
+
+message GetLeadWithFiltersRequest {
+  int32 user_id = 1;
+  int32 business_id = 2;
+  string type = 3;
+  string field_name = 4;
+  string field_operator = 5;
+  string field_value = 6;
+}
+
+message Lead {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string phone = 4;
+  string status = 5;
+}
+
+message GetLeadWithFiltersResponse {
+  repeated Lead leads = 1; 
+}
+
+service LeadService {
+  rpc GetLeadWithFilters(GetLeadWithFiltersRequest) returns (stream Lead);
+}

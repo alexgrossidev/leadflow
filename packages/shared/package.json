@@ -1,0 +1,46 @@
+{
+  "name": "@leadflow/shared",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./src/*/index.ts",
+      "development": "./src/*/index.ts",
+      "require": "./dist/*/index.cjs",
+      "import": "./dist/*/index.js",
+      "default": "./dist/*/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/*/index.ts --format esm,cjs --dts --shims --clean",
+    "dev": "tsup src/index.ts src/*/index.ts --format esm,cjs --dts --shims --watch",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1045.0",
+    "@aws-sdk/s3-request-presigner": "^3.1045.0",
+    "@bull-board/api": "^7.0.0",
+    "@bull-board/express": "^7.0.0",
+    "bullmq": "^5.72.1",
+    "dotenv": "^16.4.5",
+    "pino": "^10.3.1",
+    "redis": "^5.11.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@leadflow/tsconfig": "*",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.5"
+  }
+}
