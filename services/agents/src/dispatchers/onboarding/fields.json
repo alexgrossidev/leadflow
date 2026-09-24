@@ -1,0 +1,232 @@
+{
+  "fields": [
+    {
+      "key": "business_info",
+      "endpoint": "/api/onboarding/business",
+      "providesBusinessId": true,
+      "enrich": true,
+      "defaults": { "isFranchise": false, "locationHidden": false },
+      "instructions": "Capture the business's identity and contact details. From an owner introducing themselves (e.g. \"mi chiamo Gino Rossi\") take ownerFirstName and ownerLastName. Ask for every required detail the text does not state — do not guess an address, phone, category, or email. A mentioned website is used only to look up more information; it is not stored here.",
+      "payload": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "The business's trading name." },
+          "category": { "type": "string", "description": "The business's category/sector." },
+          "about": { "type": "string", "description": "A description of what the business does." },
+          "businessTagLine": { "type": "string" },
+          "ownerFirstName": { "type": "string" },
+          "ownerLastName": { "type": "string" },
+          "email": { "type": "string" },
+          "phoneNumberPrefix": { "type": "string", "description": "International dialing prefix, e.g. +39." },
+          "phoneNumber": { "type": "string" },
+          "address": { "type": "string" },
+          "postalCode": { "type": "string" },
+          "city": { "type": "string" },
+          "province": { "type": "string" },
+          "country": { "type": "string" },
+          "ragioneSociale": { "type": "string", "description": "Registered legal name, if stated." },
+          "VATnumber": { "type": "string" },
+          "fiscalCode": { "type": "string" }
+        },
+        "required": [
+          "category",
+          "about",
+          "email",
+          "phoneNumberPrefix",
+          "phoneNumber",
+          "address",
+          "postalCode",
+          "city",
+          "province",
+          "country"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "key": "create_services",
+      "endpoint": "/api/onboarding/services",
+      "instructions": "Extract every service offered. Each needs a name, a description, a category, and a duration. Price is in euros; use 0 when no price is stated. If a service's category, description, or duration is missing, ask rather than guess.",
+      "payload": {
+        "type": "object",
+        "properties": {
+          "services": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "description": { "type": "string" },
+                "serviceCategory": { "type": "string" },
+                "price": { "type": "number", "description": "Price in euros, e.g. 10 for 10 euros. Use 0 if not stated." },
+                "duration": { "type": "number", "description": "Length of the service, in duration_unit." },
+                "duration_unit": {
+                  "type": "string",
+                  "enum": ["minutes", "hours"],
+                  "description": "Unit for duration. Defaults to minutes if unstated."
+                }
+              },
+              "required": ["name", "description", "serviceCategory", "price", "duration"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["services"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "key": "create_time",
+      "endpoint": "/api/onboarding/schedule",
+      "defaults": { "name": "Schedule" },
+      "instructions": "Build one dayOptions entry per weekday the business operates. Expand ranges: \"Monday to Friday\" is five entries, Monday through Friday. openingHours and closingHours are ISO 8601 date-time strings (standard JS Date format), at most two per day (e.g. a morning and an afternoon block). Use 1970-01-01 as the reference date and put the clock time in the time portion — 9am opening is \"1970-01-01T09:00:00.000Z\", 11pm closing is \"1970-01-01T23:00:00.000Z\". For a day the business is closed, set isClosed true and leave the hour arrays empty. If AM/PM or the days are ambiguous, ask.",
+      "payload": {
+        "type": "object",
+        "properties": {
+          "dayOptions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "dayName": {
+                  "type": "string",
+                  "enum": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+                },
+                "openingHours": {
+                  "type": "array",
+                  "items": { "type": "string", "description": "ISO 8601 date-time, e.g. 1970-01-01T09:00:00.000Z." },
+                  "maxItems": 2
+                },
+                "closingHours": {
+                  "type": "array",
+                  "items": { "type": "string", "description": "ISO 8601 date-time, e.g. 1970-01-01T23:00:00.000Z." },
+                  "maxItems": 2
+                },
+                "isOpenTwentyFourHours": { "type": "boolean" },
+                "isClosed": { "type": "boolean" }
+              },
+              "required": ["dayName", "openingHours", "closingHours", "isOpenTwentyFourHours", "isClosed"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["dayOptions"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "key": "create_users",
+      "endpoint": "/api/onboarding/employees",
+      "instructions": "Extract the people who need access besides the owner. Each needs a full name and an email to be invited. A stated email may be shared by several people (e.g. a single shop inbox both staff use) — apply that email to every person it covers rather than treating them as having none. Only report an email as missing when the text gives no email that applies to that person at all. Capture their role and the names of services they perform when stated. Set active to 1 when the text says they need an account or access. Never invent a username or password; those are set when the person accepts their invite.",
+      "payload": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string", "description": "The person's full name." },
+                "email": { "type": "string" },
+                "role": { "type": "string" },
+                "serviceNames": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Names of services this person performs."
+                },
+                "active": {
+                  "type": "integer",
+                  "enum": [0, 1],
+                  "description": "1 if they need a login account, 0 otherwise."
+                }
+              },
+              "required": ["name", "email"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["users"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "key": "pipeline_configuration",
+      "endpoint": "/api/onboarding/board",
+      "dispatch": "parentChildren",
+      "childEndpoint": "/api/onboarding/column",
+      "childrenKey": "columns",
+      "parentIdField": "board_id",
+      "parentBusinessField": "business_id",
+      "defaults": { "name": "Pipeline" },
+      "instructions": "Read the sales pipeline the owner describes as an ordered list of stages, in the order they happen (e.g. lead enters, contacted, negotiation, closed). Produce one column per stage; column_order is its 0-based position in the flow. If no board name is stated, it defaults to Pipeline.",
+      "payload": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Board name; defaults to Pipeline if unstated." },
+          "columns": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string", "description": "Stage name." },
+                "column_order": { "type": "integer", "description": "0-based position of the stage in the pipeline." }
+              },
+              "required": ["name", "column_order"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["columns"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "key": "automations_configuration",
+      "dispatch": "routed",
+      "routeBy": "audience",
+      "routes": {
+        "leads": "/api/onboarding/workflow",
+        "clienti": "/api/onboarding/automation"
+      },
+      "defaults": { "sendReports": false },
+      "instructions": "Turn the described automation into an ordered message sequence. First decide the audience: set audience to \"leads\" if it targets leads / not-yet-paying prospects (the word \"lead\", \"non ancora clienti\", \"prospect\"); set audience to \"clienti\" if it targets paying customers (\"clienti\", \"customers\"). A single sequence targets one audience — if the text clearly aims at both leads and paying customers at once, report that it must be split rather than picking one. Then build steps in order — each step is one message of type email, whatsapp, or sms, with its content, an optional subject for email, and a delay before sending (delay 0 for immediate). delayUnit must be one of minutes, hours, days: convert any larger period into these — \"a week\"/\"una settimana\" = 7 days, \"two weeks\" = 14 days, \"a month\"/\"un mese\" = 30 days.",
+      "payload": {
+        "type": "object",
+        "properties": {
+          "audience": {
+            "type": "string",
+            "enum": ["leads", "clienti"],
+            "description": "Who the automation targets: leads (not yet paying) or clienti (paying customers)."
+          },
+          "templateName": { "type": "string" },
+          "templateType": { "type": "string" },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "position": { "type": "integer", "description": "1-based order of the step." },
+                "title": { "type": "string" },
+                "description": { "type": "string" },
+                "type": { "type": "string", "enum": ["email", "whatsapp", "sms"] },
+                "content": { "type": "string", "description": "The message body." },
+                "subject": { "type": "string", "description": "Email subject; omit for whatsapp/sms." },
+                "delay": { "type": "integer", "description": "Time to wait before sending; 0 for immediate." },
+                "delayUnit": { "type": "string", "enum": ["minutes", "hours", "days"] }
+              },
+              "required": ["position", "title", "type", "content", "delay", "delayUnit"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["audience", "templateName", "steps"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}
