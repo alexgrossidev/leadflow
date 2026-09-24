@@ -1,0 +1,35 @@
+{
+  "name": "@leadflow/fileparser",
+  "version": "1.0.0",
+  "description": "Bulk customer import: parses CSV/XLSX uploads into a deduplicated staging table and delivers them to the gateway over gRPC in resumable batches.",
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "node ../../scripts/build-service.mjs src/app.ts",
+    "dev": "tsx watch --conditions=development src/app.ts",
+    "start": "node dist/main.js",
+    "test": "vitest run",
+    "check-types": "tsc --noEmit"
+  },
+  "imports": {
+    "#config/*": "./src/config/*.ts",
+    "#core/*": "./src/core/*.ts",
+    "#dispatchers/*": "./src/dispatchers/*.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1045.0",
+    "@grpc/grpc-js": "^1.14.3",
+    "@leadflow/rpc": "*",
+    "@leadflow/shared": "*",
+    "csv-parser": "^3.2.1",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.1",
+    "mysql2": "^3.22.1",
+    "pino": "^10.3.1",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {}
+}

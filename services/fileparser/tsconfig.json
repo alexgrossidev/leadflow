@@ -1,0 +1,12 @@
+{
+  "extends": "@leadflow/tsconfig/service.json",
+  "compilerOptions": {
+    "paths": {
+      "#core/*": ["./src/core/*"],
+      "#config/*": ["./src/config/*"],
+      "#dispatchers/*": ["./src/dispatchers/*"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
