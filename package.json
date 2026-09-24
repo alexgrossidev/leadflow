@@ -1,0 +1,54 @@
+{
+  "name": "leadflow",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Event-driven, multi-channel lead automation backend: TypeScript microservices over BullMQ, gRPC and MySQL, with an LLM agent service.",
+  "packageManager": "npm@10.9.4",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo dev --concurrency=15",
+    "build": "turbo build",
+    "test": "turbo test",
+    "lint": "turbo lint",
+    "check-types": "turbo check-types",
+    "proto:gen": "npm run gen --workspace=@leadflow/rpc",
+    "demo": "tsx scripts/demo.ts"
+  },
+  "workspaces": [
+    "packages/*",
+    "services/*"
+  ],
+  "devDependencies": {
+    "@bufbuild/buf": "^1.68.3",
+    "@types/node": "^22.20.4",
+    "@vitest/coverage-v8": "^4.1.11",
+    "drizzle-kit": "^0.31.11",
+    "esbuild": "^0.25.12",
+    "fast-check": "^4.10.2",
+    "ts-proto": "^2.11.6",
+    "tsx": "^4.23.15",
+    "turbo": "^2.9.4",
+    "typescript": "5.4.5",
+    "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "drizzle-orm": "0.45.1",
+    "drizzle-zod": "0.8.3",
+    "typescript": "5.4.5",
+    "zod": "4.3.6",
+    "dotenv": "17.2.3"
+  },
+  "license": "MIT",
+  "allowScripts": {
+    "esbuild@0.18.20": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.27.7": true,
+    "esbuild@0.28.2": true,
+    "bcrypt@6.0.0": true,
+    "@bufbuild/buf@1.73.0": true,
+    "protobufjs@7.6.6": true,
+    "msgpackr-extract@3.0.4": true
+  }
+}
