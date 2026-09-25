@@ -58,7 +58,7 @@ npm install && npm run demo      # drives the whole path through the public APIs
 
 No accounts or API keys are needed. Mailpit stands in for SMTP, a [contract-tested fake](services/whatsapp/dev/fake-transport.ts) for the WhatsApp transport, a [mock Graph API](services/lead-ingestion/scripts/mock-graph.ts) for Meta, MinIO for S3, and a deterministic fake for the LLM (set `LLM_PROVIDER=anthropic` and `ANTHROPIC_API_KEY` to use Claude).
 
-> **Verification status.** Every service typechecks under `strict`, all 743 tests pass, and each production bundle boots against the exact environment `docker-compose.yml` gives it. The full compose stack has not yet been run end to end; the CI image builds are its first check. See [Known limitations](#known-limitations).
+> **Verification status.** Every service typechecks under `strict`, all 743 tests pass, and each production bundle boots against the exact environment `docker-compose.yml` gives it. All seven service images build in CI, but the full compose stack has not yet been run end to end. See [Known limitations](#known-limitations).
 
 Without Docker, the tests need no infrastructure at all:
 
