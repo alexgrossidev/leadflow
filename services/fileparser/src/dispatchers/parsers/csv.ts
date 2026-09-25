@@ -106,7 +106,19 @@ export async function parseCsv(
     mapHeaders: ({ header }) => header.replace(/^﻿/, "").trim() || null,
   });
 
-  await pipeline(stream, parser, async (rows: AsyncIterable<Record<string, unknown>>) =>
-    consume(normalized(rows)),
-  );
+  // On Node 22, pipeline() can reject with its own AbortError when the final
+  // stage throws, hiding the cause. Keep the consumer's error and prefer it.
+  let consumerError: unknown;
+  try {
+    await pipeline(stream, parser, async (rows: AsyncIterable<Record<string, unknown>>) => {
+      try {
+        await consume(normalized(rows));
+      } catch (err) {
+        consumerError = err;
+        throw err;
+      }
+    });
+  } catch (err) {
+    throw consumerError ?? err;
+  }
 }
