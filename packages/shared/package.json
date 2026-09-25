@@ -33,10 +33,10 @@
     "@bull-board/api": "^7.0.0",
     "@bull-board/express": "^7.0.0",
     "bullmq": "^5.72.1",
-    "dotenv": "^16.4.5",
+    "dotenv": "^17.2.3",
     "pino": "^10.3.1",
     "redis": "^5.11.0",
-    "zod": "^3.25.76"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@leadflow/tsconfig": "*",

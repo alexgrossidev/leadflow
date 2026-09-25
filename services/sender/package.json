@@ -13,7 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "@leadflow/shared": "*",
-    "dotenv": "^16.4.5",
+    "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "fastest-levenshtein": "^1.0.16",
     "mysql2": "^3.22.1",

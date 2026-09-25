@@ -22,12 +22,12 @@
   "dependencies": {
     "@leadflow/shared": "file:../../packages/shared",
     "axios": "^1.14.0",
-    "dotenv": "*",
+    "dotenv": "^17.2.3",
     "drizzle-orm": "*",
     "fastify": "^5.8.4",
     "fastify-raw-body": "^5.0.0",
     "mysql2": "^3.20.0",
-    "zod": "^3.25.76"
+    "zod": "^4.3.6"
   },
   "type": "module",
   "private": true
