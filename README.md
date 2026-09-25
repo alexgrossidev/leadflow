@@ -9,7 +9,7 @@
 
 Seven TypeScript services and two shared packages that talk through typed BullMQ jobs, a typed event bus and gRPC streams, each owning its own MySQL database.
 
-It is extracted from a CRM backend I designed and built for small service businesses. For this public version I cut what didn't earn its place, closed the security and correctness gaps a production review found, and added the tests, local stand-ins and docs needed to run and judge it without any third-party accounts.
+It is extracted from a CRM backend for small service businesses that I built as the lead engineer on a small team. For this public version I cut what didn't earn its place, closed the security and correctness gaps a production review found, and added the tests, local stand-ins and docs needed to run and judge it without any third-party accounts.
 
 ---
 
