@@ -5,11 +5,14 @@
 ![Tests](https://img.shields.io/badge/tests-743-2ea44f)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
+## **INFO FOR RECRUITERS**
+
+This is a sample piece of an actual CRM backend for small service businesses that I built as the lead engineer on a small team. 
+Anonymised via Claude Code.
+
 **An event-driven backend that captures sales leads from ad platforms and follows them up automatically over email and WhatsApp, with an LLM receptionist on top.**
 
 Seven TypeScript services and two shared packages that talk through typed BullMQ jobs, a typed event bus and gRPC streams, each owning its own MySQL database.
-
-It is extracted from a CRM backend for small service businesses that I built as the lead engineer on a small team. For this public version I cut what didn't earn its place, closed the security and correctness gaps a production review found, and added the tests, local stand-ins and docs needed to run and judge it without any third-party accounts.
 
 ---
 
