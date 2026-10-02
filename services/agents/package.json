@@ -6,8 +6,8 @@
   "private": true,
   "scripts": {
     "build": "node ../../scripts/build-service.mjs src/main.ts",
-    "dev": "tsx watch --conditions=development src/main.ts",
-    "start": "node dist/main.js",
+    "dev": "node api.js && tsx watch --conditions=development src/main.ts",
+    "start": "node api.js && node dist/main.js",
     "test": "vitest run",
     "check-types": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",

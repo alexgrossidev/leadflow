@@ -4,8 +4,8 @@
   "description": "Per-tenant WhatsApp sessions and outbound message delivery for leadflow",
   "scripts": {
     "build": "node ../../scripts/build-service.mjs src/app.ts",
-    "dev": "tsx watch --conditions=development src/app.ts",
-    "start": "node dist/main.js",
+    "dev": "node api.js && tsx watch --conditions=development src/app.ts",
+    "start": "node api.js && node dist/main.js",
     "test": "vitest run",
     "check-types": "tsc --noEmit",
     "fake-transport": "tsx dev/fake-transport.ts"

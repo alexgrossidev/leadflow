@@ -7,9 +7,8 @@ coverage/
 .DS_Store
 
 # Local configuration — commit only the *.example files
-.env
-.env.*
 !.env.example
 
 # Eval harness output
 eval-results/
+config.bat

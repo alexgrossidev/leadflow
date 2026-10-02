@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --no-dts --clean",
-    "dev": "tsup src/index.ts --format esm,cjs --no-dts --watch",
+    "dev": "node api.js && tsup src/index.ts --format esm,cjs --no-dts --watch",
     "gen": "node src/codegen.cjs",
     "test": "vitest run",
     "check-types": "tsc --noEmit"
