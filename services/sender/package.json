@@ -5,8 +5,8 @@
   "description": "Paces and delivers automation messages: limits, opening hours, human-like gaps, then SMTP email or WhatsApp.",
   "scripts": {
     "build": "node ../../scripts/build-service.mjs src/app.ts",
-    "dev": "node api.js && tsx watch --conditions=development src/app.ts",
-    "start": "node api.js && node dist/main.js",
+    "dev": "tsx watch --conditions=development src/app.ts",
+    "start": "node dist/main.js",
     "test": "vitest run",
     "check-types": "tsc --noEmit"
   },
